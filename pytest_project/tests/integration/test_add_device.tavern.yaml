@@ -1,0 +1,66 @@
+test_name: Check if device can be updated via API
+
+stages:
+  - name: Log in
+    request:
+      url: https://gat.gatserver.com/api/testers/sign_in
+      method: POST
+      json: {"tester":{"email":"justwasiak+2@gmail.com","password":"kqdiB2zYCe6iSA7R","remember_me":true}}
+
+    response:
+      status_code: 200
+      save:
+        body:
+          auth_token: auth_token
+
+  - name: Get devices list operating systems
+    request:
+        url: https://gat.gatserver.com/api/testers/operating_system_versions
+        method: GET
+        headers:
+          Authorization: "Bearer {auth_token:s}"
+    response:
+      status_code: 200
+      save:
+        body:
+          desktop: data.desktop
+
+  - name: Get devices id from hardware and software
+    request:
+      url: https://gat.gatserver.com/api/testers/hardware_and_software
+      method: GET
+      headers:
+        Authorization: "Bearer {auth_token:s}"
+    response:
+      status_code: 200
+      save:
+        body:
+          desktop_id: data.desktop_operating_systems_ownerships
+
+  - name: Update device
+    request:
+      url: https://gat.gatserver.com/api/testers/hardware_and_software/desktop_devices
+      method: PUT
+      headers:
+        Authorization: "Bearer {auth_token:s}"
+        Content-Type: application/x-www-form-urlencoded
+      data:
+        tester[operating_system_ownerships_attributes[0][id]]: "{desktop_id[0].id}"
+        tester[operating_system_ownerships_attributes[0][operating_system_version_id]]: "{desktop[4].value}"
+
+    response:
+      status_code: 200
+
+  - name: Restore device
+    request:
+      url: https://gat.gatserver.com/api/testers/hardware_and_software/desktop_devices
+      method: PUT
+      headers:
+        Authorization: "Bearer {auth_token:s}"
+        Content-Type: application/x-www-form-urlencoded
+      data:
+        tester[operating_system_ownerships_attributes[0][id]]: "{desktop_id[0].id}"
+        tester[operating_system_ownerships_attributes[0][operating_system_version_id]]: "{desktop[1].value}"
+
+    response:
+      status_code: 200
